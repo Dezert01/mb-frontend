@@ -156,6 +156,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [drafts, setDrafts] = useState<Draft[]>([]);
 
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -333,6 +334,18 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   // -------------------------------------------------------------------------
   // Event Handlers
   // -------------------------------------------------------------------------
@@ -485,11 +498,29 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   );
 
   const handleDiscardChanges = useCallback(() => {
+    if (isDirty) {
+      setShowUnsavedChangesModal(true);
+    }
+  }, [isDirty]);
+
+  const handleConfirmDiscard = useCallback(() => {
     setSelections(getDefaultSelections(product));
     setSelectedAddOns([]);
     setQuantity(1);
     setIsDirty(false);
+    setShowUnsavedChangesModal(false);
   }, [product]);
+
+  const handleSaveAndClose = useCallback(async () => {
+    try {
+      await saveDraft(currentConfig, draftName || "Auto-saved Draft");
+      setLastSaved(new Date());
+      setIsDirty(false);
+      setShowUnsavedChangesModal(false);
+    } catch {
+      setError({ code: ERROR_CODES.UNKNOWN });
+    }
+  }, [currentConfig, draftName]);
 
   // -------------------------------------------------------------------------
   // Render Helpers
@@ -896,6 +927,47 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     );
   };
 
+  const renderUnsavedChangesModal = () => {
+    if (!showUnsavedChangesModal) return null;
+
+    return (
+      <div className="modal-overlay">
+        <div
+          className="modal"
+          onClick={(e) => e.stopPropagation()}
+          tabIndex={-1}
+        >
+          <div className="modal-header">
+            <h3 className="modal-title">Unsaved Changes</h3>
+          </div>
+          <div className="modal-body">
+            <p>You have unsaved changes. What would you like to do?</p>
+          </div>
+          <div className="modal-footer">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowUnsavedChangesModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-danger"
+              onClick={handleConfirmDiscard}
+            >
+              Discard Changes
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleSaveAndClose}
+            >
+              Save & Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // -------------------------------------------------------------------------
   // Main Render
   // -------------------------------------------------------------------------
@@ -1054,6 +1126,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
       {renderDraftModal()}
       {renderShareModal()}
+      {renderUnsavedChangesModal()}
     </div>
   );
 };
