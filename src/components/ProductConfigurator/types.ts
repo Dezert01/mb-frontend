@@ -90,7 +90,7 @@ export interface ValidationWarning {
 export interface Draft {
   id: string;
   configuration: Configuration;
-  savedAt: string;
+  savedAt: number;
   name: string;
 }
 

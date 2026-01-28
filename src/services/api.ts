@@ -143,7 +143,7 @@ export async function saveDraft(
     const draft: Draft = {
       id: `draft_${Date.now()}`,
       configuration: { ...config },
-      savedAt: new Date().toISOString(),
+      savedAt: Date.now(),
       name: name || `Draft ${new Date().toLocaleTimeString()}`,
     };
 
