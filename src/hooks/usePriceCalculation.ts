@@ -106,10 +106,6 @@ export function useDebouncedPriceCalculation(
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // BUG: This ref captures config at the time of the effect, not when the
-  // debounced function executes. This is a stale closure bug.
-  const configRef = useRef(config);
-
   useEffect(() => {
     // Clear any pending timeout
     if (timeoutRef.current) {
@@ -125,12 +121,9 @@ export function useDebouncedPriceCalculation(
 
     setIsLoading(true);
 
-    // BUG: Using configRef.current instead of config directly
-    // configRef won't be updated until after this effect runs
     timeoutRef.current = setTimeout(async () => {
       try {
-        // BUG: Uses potentially stale config from ref
-        const response = await calculatePrice(configRef.current!, product);
+        const response = await calculatePrice(config, product);
         setPrice(response.breakdown);
         setFormattedTotal(response.formattedTotal);
         setError(null);
@@ -140,9 +133,6 @@ export function useDebouncedPriceCalculation(
         setIsLoading(false);
       }
     }, delay);
-
-    // Update ref AFTER setting up the timeout (this is the bug - should be before)
-    configRef.current = config;
 
     return () => {
       if (timeoutRef.current) {

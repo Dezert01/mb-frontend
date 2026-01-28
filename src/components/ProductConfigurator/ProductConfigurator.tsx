@@ -35,7 +35,7 @@ import type {
   ValidationResult,
 } from "./types";
 import { ERROR_CODES } from "./types";
-import { usePriceCalculation } from "../../hooks/usePriceCalculation";
+import { useDebouncedPriceCalculation } from "../../hooks/usePriceCalculation";
 import {
   validateConfiguration,
   saveDraft,
@@ -185,7 +185,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     formattedTotal,
     isLoading: isPriceLoading,
     error: priceError,
-  } = usePriceCalculation(currentConfig, product);
+  } = useDebouncedPriceCalculation(currentConfig, product);
 
   const appliedDiscount = getAppliedDiscountPercentage(quantity);
   const nextTier = getNextDiscountTier(quantity);
