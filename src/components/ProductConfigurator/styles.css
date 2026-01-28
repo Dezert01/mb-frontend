@@ -1,8 +1,14 @@
 /* ProductConfigurator Styles */
 /* Marcus: "Basic styling - feel free to improve" */
 
+:root {
+  --focus-color: #3498db;
+}
+
 .configurator {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
@@ -94,7 +100,7 @@
 
 .option-select:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: var(--focus-color);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
@@ -111,7 +117,9 @@
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
   position: relative;
 }
 
@@ -119,12 +127,18 @@
   transform: scale(1.1);
 }
 
+.color-swatch:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+  transform: scale(1.05);
+}
+
 .color-swatch.selected {
   border-color: #333;
 }
 
 .color-swatch.selected::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -164,6 +178,11 @@
   cursor: not-allowed;
 }
 
+.quantity-btn:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
 .quantity-input {
   width: 80px;
   padding: 8px 12px;
@@ -175,7 +194,7 @@
 
 .quantity-input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: var(--focus-color);
 }
 
 /* Toggle Switch */
@@ -196,11 +215,11 @@
 }
 
 .toggle-switch.active {
-  background: #3498db;
+  background: var(--focus-color);
 }
 
 .toggle-switch::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 3px;
   left: 3px;
@@ -257,13 +276,17 @@
 
 .addon-item.selected {
   background: #e8f4f8;
-  border: 1px solid #3498db;
+  border: 1px solid var(--focus-color);
 }
 
 .addon-checkbox {
   width: 20px;
   height: 20px;
   margin-top: 2px;
+}
+.addon-checkbox:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
 }
 
 .addon-info {
@@ -365,7 +388,9 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 
 .btn:active {
@@ -373,7 +398,7 @@
 }
 
 .btn-primary {
-  background: #3498db;
+  background: var(--focus-color);
   color: white;
 }
 
@@ -434,6 +459,11 @@
 
 .quick-add-btn:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-add-btn:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
 }
 
 /* Draft Management */
@@ -611,12 +641,9 @@
 .option-select:focus,
 .quantity-input:focus,
 .toggle-switch:focus {
-  outline: 2px solid #3498db;
+  outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
-
-/* Missing focus style for color swatches - accessibility issue */
-/* .color-swatch:focus { } */
 
 /* Draft List in Modal */
 .draft-list {

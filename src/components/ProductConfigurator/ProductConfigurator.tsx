@@ -101,12 +101,12 @@ const isAddOnAvailable = (
 const formatTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp);
   return date.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZoneName: 'short'
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
   });
 };
 
@@ -172,6 +172,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const lastFocusedElement = useRef<HTMLElement | null>(null);
+  const draftModalRef = useRef<HTMLDivElement>(null);
+  const shareModalRef = useRef<HTMLDivElement>(null);
 
   // -------------------------------------------------------------------------
   // Derived State
@@ -304,6 +306,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   useEffect(() => {
     if (showDraftModal) {
       getAllDrafts().then(setDrafts);
+      draftModalRef.current?.focus();
     }
   }, [showDraftModal]);
 
@@ -312,6 +315,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       const encoded = encodeConfigurationToUrl(currentConfig);
       const url = `${window.location.origin}${window.location.pathname}?config=${encoded}`;
       setShareUrl(url);
+      shareModalRef.current?.focus();
     }
   }, [showShareModal, currentConfig]);
 
@@ -546,9 +550,17 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               onClick={() =>
                 !readOnly && handleOptionChange(option.id, choice.value)
               }
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && !readOnly) {
+                  e.preventDefault();
+                  handleOptionChange(option.id, choice.value);
+                }
+              }}
               title={choice.label}
               role="radio"
               aria-checked={currentValue === choice.value}
+              aria-label={choice.label}
+              tabIndex={readOnly ? -1 : 0}
             />
           ))}
         </div>
@@ -751,12 +763,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     if (!showDraftModal) return null;
 
     return (
-      <div
-        className="modal-overlay"
-        onClick={() => handleModalClose("draft")}
-        onKeyDown={(e) => handleModalKeyDown(e, "draft")}
-      >
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-overlay" onClick={() => handleModalClose("draft")}>
+        <div
+          ref={draftModalRef}
+          className="modal"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => handleModalKeyDown(e, "draft")}
+          tabIndex={-1}
+        >
           <div className="modal-header">
             <h3 className="modal-title">Saved Drafts</h3>
             <button
@@ -838,12 +852,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     if (!showShareModal) return null;
 
     return (
-      <div
-        className="modal-overlay"
-        onClick={() => handleModalClose("share")}
-        onKeyDown={(e) => handleModalKeyDown(e, "share")}
-      >
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-overlay" onClick={() => handleModalClose("share")}>
+        <div
+          ref={shareModalRef}
+          className="modal"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => handleModalKeyDown(e, "share")}
+          tabIndex={-1}
+        >
           <div className="modal-header">
             <h3 className="modal-title">Share Configuration</h3>
             <button
