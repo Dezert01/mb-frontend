@@ -136,6 +136,19 @@ export const ERROR_CODES = {
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
 
+const ERROR_MESSAGES: Record<ErrorCode, string> = {
+  [ERROR_CODES.PRICE_CALC_FAILED]: 'Failed to calculate price. Please try again.',
+  [ERROR_CODES.VALIDATION_CONFLICT]: 'There are conflicts in your configuration. Please review your selections.',
+  [ERROR_CODES.NETWORK_TIMEOUT]: 'The request timed out. Please check your internet connection.',
+  [ERROR_CODES.INVALID_QUANTITY]: 'The quantity specified is invalid.',
+  [ERROR_CODES.DEPENDENCY_MISSING]: 'A required dependency is missing for one of your selections.',
+  [ERROR_CODES.UNKNOWN]: 'An unknown error occurred. Please try again later.',
+};
+
+export function getErrorMessage(code: string): string {
+  return ERROR_MESSAGES[code as ErrorCode] || ERROR_MESSAGES[ERROR_CODES.UNKNOWN];
+}
+
 // Event types for callbacks
 export interface ConfigChangeEvent {
   type: 'option' | 'addon' | 'quantity';

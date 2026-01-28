@@ -34,7 +34,7 @@ import type {
   Draft,
   ValidationResult,
 } from "./types";
-import { ERROR_CODES } from "./types";
+import { ERROR_CODES, getErrorMessage } from "./types";
 import { useDebouncedPriceCalculation } from "../../hooks/usePriceCalculation";
 import {
   validateConfiguration,
@@ -155,7 +155,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   const [previewUrl, setPreviewUrl] = useState<string>(product.imageUrl);
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{
+    code: string;
+    message?: string;
+  } | null>(null);
 
   const [shareUrl, setShareUrl] = useState<string>("");
 
@@ -218,8 +221,41 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         const result = await validateConfiguration(currentConfig, product);
         if (!cancelled) {
           setValidation(result);
+          if (
+            result &&
+            !result.valid &&
+            result.errors &&
+            result.errors.length > 0
+          ) {
+            setError({
+              code: result.errors[0].code || ERROR_CODES.UNKNOWN,
+              message: result.errors[0].message,
+            });
+          } else {
+            setError(null);
+          }
         }
-      } catch {
+      } catch (err: unknown) {
+        if (!cancelled) {
+          if (
+            err &&
+            typeof err === "object" &&
+            "code" in err &&
+            typeof err.code === "string"
+          ) {
+            if ("message" in err && typeof err.message === "string") {
+              setError({ code: err.code, message: err.message });
+            } else {
+              setError({ code: err.code });
+            }
+          } else if (err instanceof Error) {
+            console.error("Validation error:", err.message);
+            setError({ code: ERROR_CODES.UNKNOWN, message: err.message });
+          } else {
+            setError({ code: ERROR_CODES.UNKNOWN });
+          }
+          setValidation(null);
+        }
       }
     };
 
@@ -323,7 +359,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       if (!addOn) return;
 
       if (!isAddOnAvailable(addOn, selections)) {
-        setError(ERROR_CODES.DEPENDENCY_MISSING);
+        setError({ code: ERROR_CODES.DEPENDENCY_MISSING });
         return;
       }
 
@@ -359,7 +395,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
       setShowDraftModal(false);
     } catch {
-      setError(ERROR_CODES.UNKNOWN);
+      setError({ code: ERROR_CODES.UNKNOWN });
     }
   }, [currentConfig, draftName]);
 
@@ -374,7 +410,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         setIsDirty(false);
       }
     } catch {
-      setError(ERROR_CODES.UNKNOWN);
+      setError({ code: ERROR_CODES.UNKNOWN });
     }
   }, []);
 
@@ -383,13 +419,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       await deleteDraft(draftId);
       setDrafts((prev) => prev.filter((d) => d.id !== draftId));
     } catch {
-      setError(ERROR_CODES.UNKNOWN);
+      setError({ code: ERROR_CODES.UNKNOWN });
     }
   }, []);
 
   const handleAddToCart = useCallback(() => {
     if (!validation?.valid) {
-      setError(validation?.errors[0]?.code || ERROR_CODES.UNKNOWN);
+      setError({
+        code: validation?.errors[0]?.code || ERROR_CODES.UNKNOWN,
+        message: validation?.errors[0]?.message,
+      });
       return;
     }
 
@@ -407,10 +446,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const handleCopyShareUrl = useCallback(() => {
     navigator.clipboard
       .writeText(shareUrl)
-      .then(() => {
-      })
+      .then(() => {})
       .catch(() => {
-        setError(ERROR_CODES.UNKNOWN);
+        setError({ code: ERROR_CODES.UNKNOWN });
       });
   }, [shareUrl]);
 
@@ -877,8 +915,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
       {(error || priceError) && (
         <div className="error-message">
-          <div>Something went wrong. Please try again.</div>
-          <div className="error-code">Error: {error || priceError}</div>
+          <div>
+            {error ? error.message || getErrorMessage(error.code) : priceError}
+          </div>
+          <div className="error-code">
+            {error ? `Error Code: ${error.code}` : "Error: " + priceError}
+          </div>
         </div>
       )}
 
@@ -919,9 +961,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             className={`price-display ${isPriceLoading ? "price-loading" : ""}`}
           >
             <div className="price-label">Total Price</div>
-            <div className="price-value">
-              {formattedTotal}
-            </div>
+            <div className="price-value">{formattedTotal}</div>
 
             {renderPriceBreakdown()}
 

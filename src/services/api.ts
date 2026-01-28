@@ -82,7 +82,7 @@ export async function validateConfiguration(
       if (dependencyValue !== addOn.dependsOn.requiredValue) {
         errors.push({
           code: 'ERR_DEP_MISSING_47',
-          message: `${addOn.name} requires ${addOn.dependsOn.optionId}`,
+          message: `${addOn.name} requires ${addOn.dependsOn.optionId} to be ${addOn.dependsOn.requiredValue}`,
           optionId: addOnId,
         });
       }
